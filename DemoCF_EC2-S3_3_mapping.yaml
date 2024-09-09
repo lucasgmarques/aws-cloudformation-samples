@@ -1,0 +1,107 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation Template using Resources, Parameters and Metadata
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Network Configuration"
+        Parameters:
+          - VPCCIDR
+          - SubnetCIDR
+      - Label:
+          default: "Amazon S3 Configuration"
+        Parameters:
+          - S3BucketName
+
+Parameters:
+  EnvironmentType:
+    Type: String
+    Default: Development
+    AllowedValues: [Development, Stage, QA, Production]
+    Description: Enter the type of the environment
+
+  VPCCIDR:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: Enter the CIDR block of the VPC
+
+  SubnetCIDR:
+    Type: String
+    Default: 10.0.0.0/24
+    AllowedValues:
+      - 10.0.0.0/24
+      - 10.0.1.0/24
+      - 10.0.2.0/24
+      - 10.0.3.0/24
+      - 10.0.4.0/24
+    Description: Enter the CIDR block of the VPC
+
+  S3BucketName:
+    Type: String
+    Description: Enter a unique name of S3 Bucket
+    AllowedPattern: '^[a-z0-9][a-z0-9\.-]{1,61}[a-z0-9]$'
+    ConstraintDescription: Bucket name must be between 3 and 63 characters long, start and end with a lowercase letter or number, and can contain lowercase letters, numbers, hyphens, and periods.
+
+Mappings:
+  EC2ToRegionMap:
+    us-east-1:
+      AMI: "ami-066784287e358dad1"
+      InstanceType: t2.small
+    us-west-1:
+      AMI: "ami-04fdea8e25817cd69"
+      InstanceType: t2.micro
+Resources:
+  bankingVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDR
+      EnableDnsHostnames: True
+      EnableDnsSupport: True
+      Tags:
+        - Key: Project
+          Value: Banking
+        - Key: Name
+          Value: !Sub ${EnvironmentType}-bankingVPC
+        - Key: Env
+          Value: !Ref EnvironmentType
+
+  bankingSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref SubnetCIDR
+      Tags:
+        - Key: Project
+          Value: Banking
+        - Key: Name
+          Value: !Sub ${EnvironmentType}-bankingSubnet
+        - Key: Env
+          Value: !Ref EnvironmentType
+
+      VpcId: !Ref bankingVPC
+
+  bankingEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap [EC2ToRegionMap, !Ref "AWS::Region", "AMI"]
+      InstanceType:
+        !FindInMap [EC2ToRegionMap, !Ref "AWS::Region", "InstanceType"]
+      SubnetId: !Ref bankingSubnet
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentType}-banking-instance
+        - Key: Project
+          Value: Banking
+        - Key: Env
+          Value: !Ref EnvironmentType
+
+  bankingS3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3BucketName
+      Tags:
+        - Key: Project
+          Value: Banking
+        - Key: Env
+          Value: !Ref EnvironmentType

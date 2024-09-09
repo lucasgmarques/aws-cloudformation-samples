@@ -1,0 +1,21 @@
+Parameters:
+  - ParameterKey: EC2AMIIdentifier
+    ParameterValue: ami-066784287e358dad1
+
+  - ParameterKey: EC2TypeInstance
+    ParameterValue: t2.micro
+
+  - ParameterKey: AvailabilityZones
+    ParameterValue: 
+      - us-east-1a
+      - us-east-1b
+      - us-east-1-c
+      
+  - ParameterKey: S3BucketName
+    ParameterValue: my-unique-bucket-name-12345
+
+  - ParameterKey: VpcId
+    ParameterValue: vpc-0123456789abcdef0
+
+  - ParameterKey: SubnetId
+    ParameterValue: subnet-0123456789abcdef0

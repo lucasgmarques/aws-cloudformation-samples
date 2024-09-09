@@ -1,0 +1,110 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation Template using Resources, Parameters and Metadata
+
+Metadata: 
+  AWS::CloudFormation::Interface: 
+    ParameterGroups: 
+      - 
+        Label: 
+          default: "Network Configuration"
+        Parameters: 
+          - VPCCIDR
+          - SubnetCIDR
+      -
+        Label: 
+          default: "Amazon EC2 Configuration"
+        Parameters: 
+          - EC2InstanceAMI
+          - EC2TypeInstance
+      -
+        Label: 
+          default: "Amazon S3 Configuration"
+        Parameters: 
+          - S3BucketName
+
+Parameters:
+  VPCCIDR:
+    Type: String
+    Default: 10.0.0.0/16 
+    Description: Enter the CIDR block of the VPC
+  
+  SubnetCIDR:
+    Type: String
+    Default: 10.0.0.0/24
+    AllowedValues:
+      - 10.0.0.0/24
+      - 10.0.1.0/24
+      - 10.0.2.0/24
+      - 10.0.3.0/24
+      - 10.0.4.0/24
+    Description: Enter the CIDR block of the VPC
+
+  EC2InstanceAMI:
+    Type: AWS::EC2::Image::Id
+    Default: ami-066784287e358dad1 
+    AllowedValues:
+      - ami-066784287e358dad1
+      - ami-0e86e20dae9224db8
+    Description: Choose the AMI of the Instance. Default is Amazon Linux 2
+
+  EC2TypeInstance:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t3.micro
+      - t3.small
+    Description: Choose the type of the Instance. Default is t2.micro
+
+  S3BucketName:
+    Type: String
+    Description: Enter a unique name of S3 Bucket
+    AllowedPattern: '^[a-z0-9][a-z0-9\.-]{1,61}[a-z0-9]$'
+    ConstraintDescription: Bucket name must be between 3 and 63 characters long, start and end with a lowercase letter or number, and can contain lowercase letters, numbers, hyphens, and periods.
+ 
+Resources:
+  bankingVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDR
+      EnableDnsHostnames: True
+      EnableDnsSupport: True
+      Tags: 
+        - Key: Project
+          Value: Banking
+        - Key: Name
+          Value: bankingVPC
+
+  bankingSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref SubnetCIDR
+      Tags: 
+        - Key: Project
+          Value: Banking
+        - Key: Name
+          Value: bankingSubnet
+
+      VpcId: !Ref bankingVPC
+
+  bankingEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref EC2InstanceAMI
+      InstanceType: !Ref EC2TypeInstance
+      SubnetId: !Ref bankingSubnet
+      Tags:
+        - Key: Name
+          Value: banking-instance
+        - Key: Project
+          Value: Banking
+
+  bankingS3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3BucketName 
+      Tags: 
+        - Key: Project
+          Value: Banking

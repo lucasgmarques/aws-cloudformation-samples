@@ -1,0 +1,52 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation template to create S3 bucket and EC2 instance along with parameters
+
+Parameters:
+  EC2AMIIdentifier:
+    Type: String
+    Default: ami-066784287e358dad1
+    AllowedValues:
+      - ami-066784287e358dad1
+      - ami-0e86e20dae9224db8
+    Description: Choose the AMI of the Instance. Default is Amazon Linux 2
+
+  EC2TypeInstance:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t3.micro
+      - t3.small
+    Description: Choose the type of the Instance. Default is t2.micro
+
+  AvailabilityZones:
+    Type: AWS::EC2::AvailabilityZones::Name
+    Description: Select the AZ for the EC2 Instance
+
+  S3BucketName:
+    Type: String
+    Description: Enter a unique name of S3 Bucket
+
+Resources:
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3BucketName
+
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZones
+      InstanceType: !Ref EC2TypeInstance
+      ImageId: !Ref EC2AMIIdentifier
+
+Outputs:
+  S3BucketName:
+    Description: Name of the created S3 bucket
+    Value: !Ref MyS3Bucket
+
+  EC2InstanceID:
+    Description: ID of the created EC2 instance
+    Value: !Ref MyEC2Instance

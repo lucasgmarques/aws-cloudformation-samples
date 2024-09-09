@@ -1,0 +1,251 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: |
+  This is a cloudformation to develop the baseline network such as VCP and others sub components
+
+Parameters:
+  VPCParameters:
+    Type: String
+    Default: 10.0.0.0/16
+    AllowedValues:
+      - 10.0.0.0/16
+      - 10.0.0.0/24
+    Description: Enter the value of the VPC CIDR
+
+  EnvironmentType:
+    Type: String
+    Default: Dev
+    AllowedValues:
+      - Dev
+      - QA
+      - Prod
+    Description: Enter the environment type
+
+  ProjectName:
+    Type: String
+    Description: Enter the name of the Project
+
+  ProjectID:
+    Type: String
+    Description: Enter the name of the Project ID
+
+  ResourceID:
+    Type: String
+    Description: Enter the name of the Resource
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Network Configuration"
+        Parameters:
+          - VPCParameters
+      - Label:
+          default: "Tags"
+        Parameters:
+          - EnvironmentType
+          - ProjectName
+          - ProjectID
+          - ResourceID
+
+Resources:
+  MyVPCNetwork:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCParameters
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentType}-VPC
+
+        - Key: Environment
+          Value: !Ref EnvironmentType
+
+        - Key: Project Name
+          Value: !Ref ProjectName
+
+        - Key: Project ID
+          Value: !Ref ProjectID
+
+        - Key: Resource Name
+          Value: !Ref ResourceID
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      CidrBlock: 10.0.0.0/24
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentType
+
+        - Key: Project Name
+          Value: !Ref ProjectName
+
+        - Key: Project ID
+          Value: !Ref ProjectID
+
+        - Key: Resource Name
+          Value: !Ref ResourceID
+      VpcId: !Ref MyVPCNetwork
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1b
+      CidrBlock: 10.0.1.0/24
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentType
+
+        - Key: Project Name
+          Value: !Ref ProjectName
+
+        - Key: Project ID
+          Value: !Ref ProjectID
+
+        - Key: Resource Name
+          Value: !Ref ResourceID
+      VpcId: !Ref MyVPCNetwork
+
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1c
+      CidrBlock: 10.0.2.0/24
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentType
+
+        - Key: Project Name
+          Value: !Ref ProjectName
+
+        - Key: Project ID
+          Value: !Ref ProjectID
+
+        - Key: Resource Name
+          Value: !Ref ResourceID
+      VpcId: !Ref MyVPCNetwork
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      CidrBlock: 10.0.3.0/24
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentType
+
+        - Key: Project Name
+          Value: !Ref ProjectName
+
+        - Key: Project ID
+          Value: !Ref ProjectID
+
+        - Key: Resource Name
+          Value: !Ref ResourceID
+      VpcId: !Ref MyVPCNetwork
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1b
+      CidrBlock: 10.0.4.0/24
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentType
+
+        - Key: Project Name
+          Value: !Ref ProjectName
+
+        - Key: Project ID
+          Value: !Ref ProjectID
+
+        - Key: Resource Name
+          Value: !Ref ResourceID
+      VpcId: !Ref MyVPCNetwork
+
+  PrivateSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1c
+      CidrBlock: 10.0.5.0/24
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentType
+
+        - Key: Project Name
+          Value: !Ref ProjectName
+
+        - Key: Project ID
+          Value: !Ref ProjectID
+
+        - Key: Resource Name
+          Value: !Ref ResourceID
+      VpcId: !Ref MyVPCNetwork
+
+  MyInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentType
+
+        - Key: Project Name
+          Value: !Ref ProjectName
+
+        - Key: Project ID
+          Value: !Ref ProjectID
+
+        - Key: Resource Name
+          Value: InternetGateway
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MyVPCNetwork
+      InternetGatewayId: !Ref MyInternetGateway
+
+  MyRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPCNetwork
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentType
+
+        - Key: Project Name
+          Value: !Ref ProjectName
+
+        - Key: Project ID
+          Value: !Ref ProjectID
+
+        - Key: Resource Name
+          Value: RouteTable
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref MyInternetGateway
+      RouteTableId: !Ref MyRouteTable
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref MyRouteTable
+    
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref MyRouteTable
+
+  PublicSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet3
+      RouteTableId: !Ref MyRouteTable
